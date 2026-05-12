@@ -1,0 +1,177 @@
+name: CI pipeline
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  pull_request:
+    branches:
+      - main
+
+env:
+  TESTDIR_SUCCESS: .test_success
+  TESTDIR_FAILURE: .test_failure
+
+jobs:
+  # ── 1. Lint / format check ────────────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          activate-environment: true
+          cache: true
+          frozen: true  # use lockfile as-is; never mutate it in CI
+
+      - name: Ruff lint
+        run: ruff check --output-format=github
+
+      - name: Ruff format check
+        run: ruff format --check
+
+      - name: Snakefmt check
+        run: snakefmt --check hepatypist/workflow/
+
+  # ── 2. Integration tests — Ubuntu ────────────────────────────────────────
+  test-ubuntu:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          activate-environment: true
+          cache: true
+          frozen: true
+
+      - name: Integration test — success cases
+        run: hepatypist -q tests/success_test.fasta -o $TESTDIR_SUCCESS -n 4
+
+      - name: Evaluate success cases
+        run: python tests/integration.py --expected tests/success/results.tsv --testdir $TESTDIR_SUCCESS
+
+      - name: Integration test — failure cases
+        run: hepatypist -q tests/failure_test.fasta -o $TESTDIR_FAILURE -n 4
+
+      - name: Evaluate failure cases
+        run: python tests/integration.py --expected tests/failure/results.tsv --testdir $TESTDIR_FAILURE
+
+      - name: Clean up
+        if: always()
+        run: rm -rf $TESTDIR_SUCCESS $TESTDIR_FAILURE
+
+  # ── 3. Build wheel on main (non-release pushes only) ─────────────────────
+  build-wheel:
+    if: github.ref == 'refs/heads/main'
+    needs: [test-ubuntu]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          activate-environment: true
+          cache: true
+          frozen: true
+
+      - name: Install build backend
+        run: pip install build
+
+      - name: Clean old wheels and build
+        run: |
+          rm -f dist/*.whl
+          python -m build --wheel
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hepatypist-wheel
+          path: dist/*.whl
+          retention-days: 30
+
+      - name: Update env.yaml wheel URL and commit
+        run: |
+          WHEEL=$(ls dist/*.whl | head -1 | xargs basename)
+          WHEEL_URL="https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/${WHEEL}"
+          sed -i "s|https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
+          pixi install
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add dist/ env.yaml pixi.lock
+          git diff --staged --quiet || git commit -m "ci: rebuild wheel and update env.yaml [skip ci]"
+          git push
+
+  # ── 4. Release: bump versions, build wheel, publish ──────────────────────
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [test-ubuntu]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main  # commit version bumps back to main, not to the tag
+
+      - name: Extract version from tag
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Bump version in pyproject.toml
+        run: sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+
+      - name: Bump version in __init__.py
+        run: sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" hepatypist/__init__.py
+
+      - name: Bump version in Dockerfile
+        run: sed -i 's/ARG branch_tag="[^"]*"/ARG branch_tag="'"$VERSION"'"/' Dockerfile
+
+      - uses: prefix-dev/setup-pixi@v0.8.4
+        with:
+          activate-environment: true
+          cache: true
+          frozen: true
+
+      - name: Install build backend
+        run: pip install build
+
+      - name: Build release wheel
+        run: |
+          rm -f dist/*.whl
+          python -m build --wheel
+
+      - name: Update env.yaml wheel URL
+        run: |
+          WHEEL=$(ls dist/*.whl | head -1 | xargs basename)
+          WHEEL_URL="https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/${WHEEL}"
+          sed -i "s|https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
+
+      - name: Commit version bumps and wheel to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml hepatypist/__init__.py Dockerfile env.yaml dist/
+          git diff --staged --quiet || git commit -m "release: bump to v$VERSION [skip ci]"
+          git push origin HEAD:main
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hepatypist-wheel-${{ env.VERSION }}
+          path: dist/*.whl
+          retention-days: 90
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.whl
+          generate_release_notes: true

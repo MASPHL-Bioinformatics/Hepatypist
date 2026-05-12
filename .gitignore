@@ -1,0 +1,9 @@
+build/
+*.egg-info/
+.git/
+.pixi/
+*Zone.Identifier
+.snakemake
+__pycache__/
+.ruff_cache/
+.mypy_cache/
