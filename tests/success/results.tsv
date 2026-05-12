@@ -1,0 +1,6 @@
+queryname	status	stage_failed	failure_reason	placement_gt	blast_gt	query_ham_pi	gt_ham_pi_range	ham_pi_flag	query_ng_ham_pi	gt_ng_ham_pi_range	ng_ham_pi_flag	nn_gt	nn_support	querynode_support	queryparent_support	mrca_support	monophyletic	warnings
+LT745922.1	SUCCESS			IIIA	IIIA	0.020	avg 0.032 / max 0.067	WITHIN	0.020	avg 0.032 / max 0.067	WITHIN	IIIA	1.0	1.0	0.28	0.92	True	
+AB020566.1	SUCCESS			IA	IA	0.029	avg 0.038 / max 0.058	WITHIN	0.029	avg 0.038 / max 0.058	WITHIN	IA	1.0	1.0	1.0	0.29	True	IA_mrca_SUPPORT_LOW
+LC128713.1_340nt_offset_cluster_from_rest_of_subge	SUCCESS			IB	IB	0.080	avg 0.032 / max 0.057	OUTSIDE	0.059	avg 0.032 / max 0.057	OUTSIDE	IB	1.0	1.0	1.0	0.25	True	IB_mrca_SUPPORT_LOW
+AB425339.1_2900-3248_sub_strain_KRM003G72__349nt	SUCCESS			IIIB	IIIB	0.007	avg 0.025 / max 0.053	WITHIN	0.007	avg 0.006 / max 0.008	WITHIN	IIIB	1.0	1.0	1.0	0.92	True	
+LC014793.1_isolate_1406-Tokyo-F14-140_525nt	SUCCESS			IC	IC	0.017	avg 0.066 / max 0.253	WITHIN	0.017	avg 0.015 / max 0.024	WITHIN	IC	1.0	1.0	1.0	0.94	True	CANDIDATE_GENOTYPE_IC_PUTATIVE_IA_IC_NOT_FORMALLY_RECOGNIZED_BY_ICTV

@@ -1,0 +1,5 @@
+queryname	status	stage_failed	failure_reason	placement_gt	blast_gt	query_ham_pi	gt_ham_pi_range	ham_pi_flag	query_ng_ham_pi	gt_ng_ham_pi_range	ng_ham_pi_flag	nn_gt	nn_support	querynode_support	queryparent_support	mrca_support	monophyletic	warnings
+Disallowed	FAILED	preprocessing	sequence contains disallowed nucleotide characters															
+too_short_A16_Strain_1_90bp	FAILED	preprocessing	sequence too short (minimum 100 bp)															
+over_ambiguity_threshold	FAILED	preprocessing	>20% ambiguous nucleotides															
+NC_003977.2	FAILED	blast	no BLAST hits found in reference database															

@@ -1,0 +1,32 @@
+[project]
+authors = ["meg256 <mary.godec@mass.gov>"]
+channels = ["conda-forge","bioconda"]
+description = "Hepatypist Pixi development environment resolving conda and pip dependencies"
+name = "hepatypist"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+postinstall = {cmd="python -m pip3 install ."}
+#postinstall = {cmd="python -m pip3 install -e ."}
+
+[dependencies]
+python = "==3.11.0"
+pip = "*"
+snakemake = "7.32.*"
+pandas = "2.2.*"
+seaborn = "0.13.*"
+mafft = "7.525.*"
+blast = "2.16.*"
+fasttree = "2.1.*"
+baltic = "0.3.*"
+biopython = "1.85.*"
+ete3 = "3.1.*"
+loguru = "0.7.*"
+matplotlib = "3.10.*"
+pytest = "8.3.*"
+snakefmt = "0.11.*"
+ruff = "0.11.*"
+
+[pypi-dependencies]
+hepatypist = { path = "." }

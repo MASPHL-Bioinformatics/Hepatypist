@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hepatypist"
+version = "1.0.0"
+description = "Subgenotype assignment of the HAV VP2-1B region"
+authors = [{name = "Mary Godec", email = "mary.godec@mass.gov"}]
+requires-python = ">=3.11"
+
+[project.urls]
+Homepage = "https://github.com/MASPHL-Bioinformatics/Hepatypist"
+
+[project.scripts]
+hepatypist = "hepatypist.command:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.ruff]
+exclude = ["build/", "dist/", ".pixi/"]
+
+[tool.setuptools.package-data]
+hepatypist = [
+    "data/*.fasta",
+    "data/*.tsv",
+    "data/blastdb/*",
+    "workflow/Snakefile",
+    "workflow/rules/*.smk",
+]

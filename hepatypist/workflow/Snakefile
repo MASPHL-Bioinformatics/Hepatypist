@@ -1,0 +1,154 @@
+#!/usr/bin/env python
+pipeline = "hepatypist"
+"""
+Snakemake implementation of HAV genotyping python script.
+
+Created 24 Oct 2024
+@author: Mary Godec
+@contact: mary.godec@mass.gov
+"""
+
+import glob
+import os
+import sys
+import yaml
+from pathlib import Path
+import pandas as pd
+import re
+from snakemake.utils import min_version
+from snakemake.utils import read_job_properties
+
+##### set minimum snakemake version #####
+min_version("7.1.0")
+
+##########################################
+######        import configs        ######
+##########################################
+
+
+# # replace with Pathlib check
+def check_path(p):
+    ps = p.rstrip()
+    if not ps.endswith("/"):
+        ps += "/"
+    return ps
+
+
+RULES_DIR = "rules/"
+RESULTS_DIR = check_path(config["resultsdir"])
+LOG_DIR = check_path(config["logsdir"])
+RUN_INFO = config["runinfo_platform"]
+
+##########################################
+######         load rules           ######
+##########################################
+
+
+include: "rules/preprocessing.smk"
+include: "rules/blast.smk"
+include: "rules/placement.smk"
+include: "rules/report.smk"
+
+
+# INPUT definitions
+queryfasta = config["query"]
+reffasta = config["ref"]
+QUERY_MINLEN = config["query_minlen"]
+REF_MINLEN = config["ref_minlen"]
+REF_DEDUP = config["ref_dedup"]
+PID = config["pid_threshold"]
+PC = config["pc_threshold"]
+LENMIN = config["blast_len_threshold"]
+NTHREADS = config["nthreads"]
+CONFIGOUTPATH = config["configoutfile"]
+
+queryfasta_copy = RESULTS_DIR + "qc/query.fasta"
+queryfasta_qc = RESULTS_DIR + "qc/query_qc.txt"
+query_fmt = RESULTS_DIR + "qc/query_fmt.fasta"
+reffasta_copy = RESULTS_DIR + "qc/ref.fasta"
+reffasta_qc = RESULTS_DIR + "qc/ref_qc.txt"
+
+preprocessing_failures = RESULTS_DIR + "qc/preprocessing_failures.tsv"
+
+if config["ref_aligned"] != "":  # if user will use default ref
+    reffasta_aligned = config["ref_aligned"]
+    ref_stats = config["ref_stats"]
+    ref_formatted = config["ref"]
+    preprocessing_output = [
+        queryfasta_copy,
+        queryfasta_qc,
+        query_fmt,
+        reffasta_copy,
+        reffasta_qc,
+        preprocessing_failures,
+    ]
+
+else:  # if user specifies ref and therefore ref_aligned etc are not explicitly given in config...
+    reffasta_aligned = RESULTS_DIR + "qc/ref_aligned.fasta"
+    ref_stats = RESULTS_DIR + "qc/refstats.tsv"
+    ref_formatted = RESULTS_DIR + "qc/ref_fmt.fasta"
+    preprocessing_output = [
+        queryfasta_copy,
+        queryfasta_qc,
+        query_fmt,
+        reffasta_copy,
+        reffasta_qc,
+        ref_formatted,
+        ref_stats,
+        preprocessing_failures,
+    ]
+
+# BLAST output
+blastfasdir = os.path.join(RESULTS_DIR, "blast/blastinfiles/")
+blastoutdir = os.path.join(RESULTS_DIR, "blast/blastoutfiles/")
+blastparsed = os.path.join(RESULTS_DIR, "blast/blast_parsed.txt")
+querymultifas = os.path.join(RESULTS_DIR, "blast/query_matches.fasta")
+blast_failures = os.path.join(RESULTS_DIR, "blast/blast_failures.tsv")
+blast_output = [agg_splitfas, agg_blastout, blastparsed, querymultifas, blast_failures]
+if config["ref_blastdb"] != "":
+    blastdbpath = config["ref_blastdb"]
+else:
+    blastdbpath = RESULTS_DIR + "blast/blastdb/refdb"
+    blastdbndb = blastdbpath + ".ndb"
+    blast_output.append(blastdbndb)
+
+# PLACEMENT output
+aligned_queryref = RESULTS_DIR + "placement/ref_query_aligned.fasta"
+output_treepath = RESULTS_DIR + "placement/ref_query_tree.treefile"
+rooted_treepath = RESULTS_DIR + "placement/ref_query_tree_rooted.treefile"
+tree_image_path = RESULTS_DIR + "placement/ref_query_tree.png"
+tree_html_path = RESULTS_DIR + "placement/ref_query_tree.html"
+placement_hits = RESULTS_DIR + "placement/placement_stats.tsv"
+placement_output = [
+    aligned_queryref,
+    output_treepath,
+    rooted_treepath,
+    tree_image_path,
+    tree_html_path,
+    placement_hits,
+]
+
+# REPORT output
+report_html = RESULTS_DIR + "report.html"
+report_tsv = RESULTS_DIR + "results.tsv"
+
+
+rule all:
+    input:
+        CONFIGOUTPATH,
+        preprocessing_output,
+        blast_output,
+        placement_output,
+        report_html,
+        report_tsv,
+
+
+# save config to file in results dir for reproducibility
+# defaut_flow_style=False if you want collections to be always serialized in the block style
+rule config_to_file:
+    output:
+        CONFIGOUTPATH,
+    run:
+        with open(CONFIGOUTPATH, "w") as outf:
+            yaml.dump(config, outf, default_flow_style=False)
+        outf.close()
