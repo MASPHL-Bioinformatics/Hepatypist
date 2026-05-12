@@ -6,6 +6,6 @@ Purpose: Hepatypist is a molecular genotyping/clade assignment command-line tool
 
 Scoring relies on BLAST-based sequence identity metrics, in addition to phylogenetic placement and genotype-specific context.
 
-While the included reference set is a curated set of HAV sequences, Hepatypist is pathogen-agnostic - the user can supply their own labeled reference set, nomenclature, and typing thresholds. More detailed usage and background information can be found on the [Hepatypist Wiki page](https://github.com/massgov-bidls/Hepatypist/wiki).
+While the included reference set is a curated set of HAV sequences, Hepatypist is pathogen-agnostic - the user can supply their own labeled reference set, nomenclature, and typing thresholds. More detailed usage and background information can be found on the [Hepatypist Wiki page](https://github.com/MASPHL-Bioinformatics/Hepatypist/wiki).
 
 
