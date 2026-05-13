@@ -2,6 +2,8 @@
 
 <img src="logo.png" width="200">
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20157195.svg)](https://doi.org/10.5281/zenodo.20157195)
+
 Purpose: Hepatypist is a molecular genotyping/clade assignment command-line tool. It is designed for hepatitis A subgenotyping based on the canonical CDC VP1-2B typing region.
 
 Scoring relies on BLAST-based sequence identity metrics, in addition to phylogenetic placement and genotype-specific context.

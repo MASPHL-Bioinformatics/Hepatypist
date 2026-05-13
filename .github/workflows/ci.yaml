@@ -101,8 +101,8 @@ jobs:
       - name: Update env.yaml wheel URL and commit
         run: |
           WHEEL=$(ls dist/*.whl | head -1 | xargs basename)
-          WHEEL_URL="https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/${WHEEL}"
-          sed -i "s|https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
+          WHEEL_URL="https://github.com/MASPHL-Bioinformatics/Hepatypist/raw/refs/heads/main/dist/${WHEEL}"
+          sed -i "s|https://github.com/MASPHL-Bioinformatics/Hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
           pixi install
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -152,8 +152,8 @@ jobs:
       - name: Update env.yaml wheel URL
         run: |
           WHEEL=$(ls dist/*.whl | head -1 | xargs basename)
-          WHEEL_URL="https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/${WHEEL}"
-          sed -i "s|https://github.com/meg256/hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
+          WHEEL_URL="https://github.com/MASPHL-Bioinformatics/Hepatypist/raw/refs/heads/main/dist/${WHEEL}"
+          sed -i "s|https://github.com/MASPHL-Bioinformatics/Hepatypist/raw/refs/heads/main/dist/.*\.whl|${WHEEL_URL}|" env.yaml
 
       - name: Commit version bumps and wheel to main
         run: |
