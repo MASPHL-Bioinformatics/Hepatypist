@@ -15,6 +15,12 @@ Homepage = "https://github.com/MASPHL-Bioinformatics/Hepatypist"
 [project.scripts]
 hepatypist = "hepatypist.command:main"
 
+[tool.setuptools]
+zip-safe = false
+
+[tool.setuptools.dist-info]
+tag-build = ""
+
 [tool.setuptools.packages.find]
 where = ["."]
 
