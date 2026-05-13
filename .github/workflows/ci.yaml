@@ -130,21 +130,9 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main
 
       - name: Extract version from tag
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
-
-      - name: Bump version in pyproject.toml
-        run: sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
-
-      - name: Bump version in __init__.py
-        run: sed -i "s/__version__ = .*/__version__ = \"$VERSION\"/" hepatypist/__init__.py
-
-      - name: Bump version in Dockerfile
-        run: sed -i 's/ARG branch_tag="[^"]*"/ARG branch_tag="'"$VERSION"'"/' Dockerfile
 
       - uses: prefix-dev/setup-pixi@v0.8.4
         with:
